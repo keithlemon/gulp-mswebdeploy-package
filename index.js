@@ -12,7 +12,7 @@ function generateManifestXml(options){
     var system_info_xml = builder.create(
       {'msdeploy.iisApp': {
         'iisApp' : {
-          '@path' : options.source
+          '@path' : options.website
         }
 
         }
@@ -65,46 +65,49 @@ function createPackage(options, callback) {
         archive.pipe(output);
         archive.directory(options.source);
         archive.append(generateParametersXml(options), { name:'parameters.xml' });
-        archive.append( generateManifestXml(options), { name:'manifest.xml' });
+        archive.append(generateManifestXml(options), { name:'manifest.xml' });
         archive.finalize();
       }
   }
 
 module.exports = function (options) {
 
-    
+
 	if (!options.verb) {
 		options.verb = "sync";
 	}
-    
+
     if (!options.dest) {
 		options.dest = "webdeploy/";
 	}
-    
+
     if (!options.source) {
 		options.source = "dist/";
 	}
-    
+
+	if (!options.website) {
+		options.website = options.source;
+	}
+
     if (!options.package) {
 		options.package = "webdeploy.zip";
 	}
-    
+
     if (!options.enabled) {
 		options.enabled = true;
 	}
-    
+
     if (!options.includeAcls) {
 		options.includeAcls = true;
 	}
 
 	return through.obj(function (file, enc, callback) {
-        gutil.log('Initializing...');  
-        
+        gutil.log('Initializing...');
+
         if (file.isStream()) {
             throw gutil.PluginError("gulp-mswebdeploy-package", "Stream is not supported");
-            return callback();
         }
-      
+
         createPackage(options, callback);
 	});
 };
